@@ -1,0 +1,99 @@
+version: "3"
+
+services:
+   zookeeper:
+      image: docker.io/bitnami/zookeeper:3.7
+      restart: always
+      ports:
+         - 2181:2181
+      environment:
+         - ALLOW_ANONYMOUS_LOGIN=yes
+
+   kafka:
+      image: docker.io/niks123123/kafka:2.7.0
+      restart: always
+      ports:
+         - 9094:9094
+         - 9092:9092
+      environment:
+         KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://127.0.0.1:9094
+         KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+         KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+         KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+         ALLOW_PLAINTEXT_LISTENER: yes
+      depends_on:
+         - zookeeper
+
+   db:
+      build:
+         context: .
+         dockerfile: Dockerfile
+
+      environment:
+         - POSTGRES_MULTIPLE_DATABASES=administrationdb,marketdb
+         - POSTGRES_PASSWORD=postgres
+         - POSTGRES_USER=postgres
+
+      ports:
+         - "5555:5432"
+
+      healthcheck:
+         test: ["CMD-SHELL", "pg_isready -U postgres"]
+         interval: 10s
+         timeout: 10s
+         retries: 5
+
+   gateway:
+      build:
+         context: ./services/gateway
+         dockerfile: Dockerfile
+
+      ports:
+         - "3222:3000"
+
+      restart: always
+
+   administration:
+      build:
+         context: ./services/administration
+         dockerfile: Dockerfile
+
+      ports:
+         - "3223:3000"
+
+      depends_on:
+         db:
+            condition: service_healthy
+
+      links:
+         - db
+
+      restart: always
+
+   notification:
+      build:
+         context: ./services/notification
+         dockerfile: Dockerfile
+
+      ports:
+         - "3224:3000"
+
+      restart: always
+
+   market:
+      build:
+         context: ./services/market
+         dockerfile: Dockerfile
+
+      ports:
+         - "3225:3000"
+
+      depends_on:
+         db:
+            condition: service_healthy
+
+      links:
+         - db
+
+      restart: always

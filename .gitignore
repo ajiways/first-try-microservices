@@ -1,0 +1,11 @@
+/services/administration/node_modules
+/services/administration/dist
+
+/services/gateway/node_modules
+/services/gateway/dist
+
+/services/notification/node_modules
+/services/notification/dist
+
+/services/market/node_modules
+/services/market/dist

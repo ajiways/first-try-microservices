@@ -18,6 +18,7 @@ export function getOrmConfig(): TypeOrmModuleOptions {
       synchronize: false,
       migrations: [join(__dirname, "..", "/migrations", "/*.{ts,js}")],
       migrationsTableName: "migrations",
+      migrationsRun: true,
       logging: "all",
       cli: {
          migrationsDir: join(__dirname, "..", "/migrations"),

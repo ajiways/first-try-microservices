@@ -14,7 +14,6 @@ export class TokenService {
 
   validateToken(token: unknown): ResponseInterface | null {
     try {
-      console.log(token);
       const res = verify(
         String(token),
         this.configService.get('SECRET'),

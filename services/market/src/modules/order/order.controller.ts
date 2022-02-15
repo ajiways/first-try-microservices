@@ -1,6 +1,7 @@
-import { Controller } from "@nestjs/common";
+import { Controller, UsePipes } from "@nestjs/common";
 import { MessagePattern, Payload } from "@nestjs/microservices";
-import { IData } from "./interfaces/data.interface";
+import { ValidationPipe } from "../../pipes/validation.pipe";
+import { IdDto } from "./dtos/id.dto";
 import { Order } from "./order.entity";
 import { OrderService } from "./order.service";
 
@@ -8,8 +9,9 @@ import { OrderService } from "./order.service";
 export class OrderController {
    constructor(private readonly orderService: OrderService) {}
 
-   @MessagePattern("gateway.get-user-orders")
-   async getOrderByUserId(@Payload() data: IData): Promise<Order[]> {
-      return this.orderService.fineByUserId(data.value);
+   @MessagePattern("market.get-user-orders")
+   @UsePipes(ValidationPipe)
+   async getOrderByUserId(@Payload() data: IdDto): Promise<Order[]> {
+      return this.orderService.fineByUserId(data.id);
    }
 }

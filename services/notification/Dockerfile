@@ -1,6 +1,7 @@
 FROM node:latest
 
 COPY /src /app/src
+COPY ./.env /app/dist/.env
 COPY ./package.json /app/package.json
 COPY ./package-lock.json /app/package-lock.json
 COPY ./tsconfig.json /app/tsconfig.json

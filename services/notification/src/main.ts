@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { KAFKA_HOST, KAFKA_PORT } from './misc/config';
+import { NOTIFICATION_SERVICE } from './misc/constants';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -9,10 +11,10 @@ async function bootstrap() {
       transport: Transport.KAFKA,
       options: {
         client: {
-          brokers: ['kafka:9092'],
+          brokers: [`${KAFKA_HOST}:${KAFKA_PORT}`],
         },
         consumer: {
-          groupId: 'notification-service',
+          groupId: NOTIFICATION_SERVICE,
         },
       },
     },

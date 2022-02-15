@@ -3,21 +3,19 @@ import { userData } from './interfaces/userData.interface';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { ResponseInterface } from './interfaces/response.interface';
+import { SECRET } from '../../misc/service';
 
 @Injectable()
 export class TokenService {
   constructor(private readonly configService: ConfigService) {}
 
   generateToken(payload: userData): string {
-    return sign({ payload }, this.configService.get('SECRET'));
+    return sign({ payload }, SECRET);
   }
 
   validateToken(token: unknown): ResponseInterface | null {
     try {
-      const res = verify(
-        String(token),
-        this.configService.get('SECRET'),
-      ) as JwtPayload;
+      const res = verify(String(token), SECRET) as JwtPayload;
 
       return {
         id: res.payload.id,

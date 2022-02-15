@@ -1,20 +1,36 @@
-import { Controller } from '@nestjs/common';
+import { Controller, HttpStatus, UsePipes } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ValidationPipe } from '../../pipes/validation.pipe';
 import { AuthService } from './auth.service';
-import { ILoginData } from './interfaces/login.data.interface';
-import { IRegisterData } from './interfaces/register.data.interface';
+import { LoginDto } from './dtos/login.dto';
+import { RegisterDto } from './dtos/register.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @MessagePattern('gateway.login')
-  async login(@Payload() data: ILoginData) {
+  @MessagePattern('administration.login')
+  @UsePipes(ValidationPipe)
+  async login(@Payload() data: LoginDto) {
+    if (!data.login) {
+      return {
+        message: data,
+        status: HttpStatus.BAD_REQUEST,
+      };
+    }
+
     return this.authService.login(data);
   }
 
-  @MessagePattern('gateway.register')
-  async register(@Payload() data: IRegisterData) {
+  @MessagePattern('administration.register')
+  async register(@Payload() data: RegisterDto) {
+    if (!data.login) {
+      return {
+        message: data,
+        status: HttpStatus.BAD_REQUEST,
+      };
+    }
+
     return this.authService.register(data);
   }
 }

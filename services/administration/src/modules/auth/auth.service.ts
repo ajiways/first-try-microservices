@@ -1,13 +1,13 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { User } from '../user/user.entity';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ILoginData } from './interfaces/login.data.interface';
 import { TokenService } from '../token/token.service';
 import { compare, hash } from 'bcrypt';
-import { IRegisterData } from './interfaces/register.data.interface';
 import { IServiceReponse } from './interfaces/service.response.interface';
 import { Client, ClientKafka, Transport } from '@nestjs/microservices';
+import { UserService } from '../user/user.service';
+import { LoginDto } from './dtos/login.dto';
+import { RegisterDto } from './dtos/register.dto';
+import { ADMINISTRATION_SERVICE } from '../../misc/constants';
+import { KAFKA_HOST, KAFKA_PORT } from '../../misc/service';
 
 @Injectable()
 export class AuthService {
@@ -15,23 +15,23 @@ export class AuthService {
     transport: Transport.KAFKA,
     options: {
       client: {
-        brokers: ['kafka:9092'],
+        brokers: [`${KAFKA_HOST}:${KAFKA_PORT}`],
       },
       consumer: {
-        groupId: 'adminstration-service',
+        groupId: ADMINISTRATION_SERVICE,
       },
     },
   })
   private readonly kafkaClient: ClientKafka;
 
   constructor(
-    @InjectRepository(User) private readonly authRepository: Repository<User>,
+    private readonly userService: UserService,
     private readonly tokenService: TokenService,
   ) {}
 
-  async login(loginData: ILoginData): Promise<IServiceReponse> {
-    const candidate = await this.authRepository.findOne({
-      where: { login: loginData.value.login },
+  async login(loginData: LoginDto): Promise<IServiceReponse> {
+    const candidate = await this.userService.findOneWithParams({
+      where: { login: loginData.login },
     });
 
     if (!candidate) {
@@ -40,7 +40,7 @@ export class AuthService {
         status: HttpStatus.BAD_REQUEST,
       };
     } else {
-      const match = await compare(loginData.value.password, candidate.password);
+      const match = await compare(loginData.password, candidate.password);
 
       if (match) {
         return {
@@ -57,13 +57,13 @@ export class AuthService {
     }
   }
 
-  async register(registerData: IRegisterData): Promise<IServiceReponse> {
-    const candidateLogin = await this.authRepository.findOne({
-      where: { login: registerData.value.login },
+  async register(registerData: RegisterDto): Promise<IServiceReponse> {
+    const candidateLogin = await this.userService.findOneWithParams({
+      where: { login: registerData.login },
     });
-    const candidatePhone = await this.authRepository.findOne({
+    const candidatePhone = await this.userService.findOneWithParams({
       where: {
-        phone: registerData.value.phone,
+        phone: registerData.phone,
       },
     });
 
@@ -73,8 +73,8 @@ export class AuthService {
         status: HttpStatus.BAD_REQUEST,
       };
     } else {
-      registerData.value.password = await hash(registerData.value.password, 7);
-      const user = await this.authRepository.create(registerData.value).save();
+      registerData.password = await hash(registerData.password, 7);
+      const user = await this.userService.createUser(registerData);
 
       this.kafkaClient.emit('administration.register', user);
 

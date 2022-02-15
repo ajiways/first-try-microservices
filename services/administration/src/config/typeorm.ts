@@ -1,21 +1,25 @@
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { ConfigService } from '@nestjs/config';
 import {
   TypeOrmModuleAsyncOptions,
   TypeOrmModuleOptions,
 } from '@nestjs/typeorm';
 import { join } from 'path';
-
-const configService = new ConfigService();
+import {
+  PG_DATABASE,
+  PG_HOST,
+  PG_PASSWORD,
+  PG_PORT,
+  PG_USER,
+} from '../misc/service';
 
 export function getOrmConfig(): TypeOrmModuleOptions {
   return {
     type: 'postgres',
-    host: configService.get('PG_HOST'),
-    port: configService.get<number>('PG_PORT'),
-    username: configService.get('PG_USER'),
-    password: configService.get('PG_PASSWORD'),
-    database: configService.get('PG_DATABASE'),
+    host: PG_HOST,
+    port: PG_PORT,
+    username: PG_USER,
+    password: PG_PASSWORD,
+    database: PG_DATABASE,
     namingStrategy: new SnakeNamingStrategy(),
     entities: [join(__dirname, '..', '/modules', '/**', '/*.entity.{ts,js}')],
     synchronize: false,

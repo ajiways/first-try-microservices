@@ -1,6 +1,7 @@
-import { Controller } from '@nestjs/common';
+import { Controller, HttpStatus, UsePipes } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { ResponseInterface } from './interfaces/response.interface';
+import { ValidationPipe } from '../../pipes/validation.pipe';
+import { TokenDto } from './dtos/token.dto';
 import { TokenService } from './token.service';
 
 @Controller()
@@ -8,7 +9,15 @@ export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
 
   @MessagePattern('gateway.check-token')
-  async checkToken(@Payload() data: any): Promise<ResponseInterface> {
-    return this.tokenService.validateToken(data.value);
+  @UsePipes(ValidationPipe)
+  async checkToken(@Payload() data: TokenDto) {
+    if (!data.token) {
+      return {
+        message: data,
+        status: HttpStatus.BAD_REQUEST,
+      };
+    }
+
+    return this.tokenService.validateToken(data.token);
   }
 }

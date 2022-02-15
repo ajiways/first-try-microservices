@@ -1,7 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
+import { IParams } from './interfaces/params.interface';
+import { RegisterDto } from '../auth/dtos/register.dto';
 
 @Injectable()
 export class UserService {
@@ -9,26 +11,21 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
-  async findAll() {
-    const result = await this.userRepository.find();
+  async findOneWithParams(params: IParams) {
+    const result = await this.userRepository.findOne({ ...params });
 
-    if (result.length === 0) {
-      throw new HttpException('Nothing was found', HttpStatus.NOT_FOUND);
+    if (!result) {
+      return false;
     }
 
     return result;
   }
 
-  async findOne(id: number) {
-    const result = await this.userRepository.findOne({ where: { id: id } });
+  async findAllWithParams(params?: IParams) {
+    return await this.userRepository.find({ ...params });
+  }
 
-    if (!result) {
-      throw new HttpException(
-        'User with the provided id was not found',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return result;
+  async createUser(user: RegisterDto) {
+    return await this.userRepository.save(user);
   }
 }

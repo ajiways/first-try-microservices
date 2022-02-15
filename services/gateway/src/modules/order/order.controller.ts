@@ -1,4 +1,5 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { User } from '../../decorators/user.decorator';
 import { AuthGuard } from '../../guards/auth.guard';
 import { OrderService } from './order.service';
 
@@ -8,7 +9,7 @@ export class OrderController {
 
   @Get()
   @UseGuards(AuthGuard)
-  getAllOrders(@Req() request) {
-    return this.orderService.getAllOrders(request.user.id);
+  getAllOrders(@User('id') id: number) {
+    return this.orderService.getAllOrders(id);
   }
 }

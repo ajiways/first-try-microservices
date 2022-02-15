@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
+import { GET_ORDERS_PATTERN } from '../../misc/constants';
 
 @Injectable()
 export class OrderService {
@@ -8,12 +9,12 @@ export class OrderService {
     @Inject('administration')
     private readonly kafkaClient: ClientKafka,
   ) {
-    this.kafkaClient.subscribeToResponseOf('market.get-user-orders');
+    this.kafkaClient.subscribeToResponseOf(GET_ORDERS_PATTERN);
   }
 
   async getAllOrders(id: number) {
     return await lastValueFrom(
-      this.kafkaClient.send('market.get-user-orders', { id: id }),
+      this.kafkaClient.send(GET_ORDERS_PATTERN, { id: id }),
     );
   }
 }

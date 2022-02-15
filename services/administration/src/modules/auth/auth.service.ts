@@ -6,7 +6,7 @@ import { Client, ClientKafka, Transport } from '@nestjs/microservices';
 import { UserService } from '../user/user.service';
 import { LoginDto } from './dtos/login.dto';
 import { RegisterDto } from './dtos/register.dto';
-import { ADMINISTRATION_SERVICE } from '../../misc/constants';
+import { ADMINISTRATION_SERVICE, REGISTER_PATTERN } from '../../misc/constants';
 import { KAFKA_HOST, KAFKA_PORT } from '../../misc/service';
 
 @Injectable()
@@ -76,7 +76,7 @@ export class AuthService {
       registerData.password = await hash(registerData.password, 7);
       const user = await this.userService.createUser(registerData);
 
-      this.kafkaClient.emit('administration.register', user);
+      this.kafkaClient.emit(REGISTER_PATTERN, user);
 
       return {
         message: 'Successfully registered!',

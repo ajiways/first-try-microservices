@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
+import { CHECK_TOKEN_PATTERN } from '../misc/constants';
 import { ResponseInterface } from './interfaces/response.interface';
 
 @Injectable()
@@ -16,7 +17,7 @@ export class AuthGuard implements CanActivate {
     @Inject('administration')
     private readonly kafkaClient: ClientKafka,
   ) {
-    this.kafkaClient.subscribeToResponseOf('gateway.check-token');
+    this.kafkaClient.subscribeToResponseOf(CHECK_TOKEN_PATTERN);
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -33,7 +34,7 @@ export class AuthGuard implements CanActivate {
     }
 
     const res: ResponseInterface = await lastValueFrom(
-      this.kafkaClient.send('gateway.check-token', { token: token }),
+      this.kafkaClient.send(CHECK_TOKEN_PATTERN, { token: token }),
     );
 
     if (!res) {
